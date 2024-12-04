@@ -1,0 +1,188 @@
+---
+title: "lab7"
+format: pdf
+author: "Angelica Rock (PID:15781397)"
+---
+
+Before we get into clustering methods let's make some sample data to cluster where we know what the answer should be
+```{r}
+hist(rnorm(150000, mean=3))
+hist(rnorm(150000, mean=c(-3,3)))
+#this is the same as
+n=150000
+hist(c(rnorm(n, mean=3), rnorm(n, mean=-3)))
+```
+```{r}
+n=30
+x <- c(rnorm(n, mean = 3), rnorm(n, mean=-3))
+y <- rev(x)
+
+z <- cbind(x,y)
+z
+plot(z)
+```
+
+
+## K-means clustering
+
+The function in base R for k-means clustering is called `kmeans()`. 
+```{r}
+km <- kmeans(z, centers = 2)
+```
+
+
+> Q. Print out the cluster membership vector (i.e. our main answer)
+
+```{r}
+km$cluster
+```
+
+Plot z with the cluster
+```{r}
+plot(z, col=c("red", "blue"))
+```
+
+Plot with clustering results
+```{r}
+plot(z, col=km$cluster)
+points(km$centers, col="blue", pch=15, cex=2)
+```
+
+> Q. Can you cluster our data in `z` into four clusters?
+
+```{r}
+km4 <- kmeans(z, centers = 4)
+plot(z, col=km4$cluster)
+points(km4$centers, col="blue", pch = 15, cex =2)
+```
+
+## Hierarchical Clustering
+
+The main function for hierarchical clustering in base R is called `hclust()`
+
+Unlike `kmeans()` I cannot just pass in my data as input. I first need a distance matrix from my data
+
+```{r}
+d <- dist(z)
+hc <- hclust(d)
+hc
+```
+There is a specific hclust plot() method...
+
+```{r}
+plot(hc)
+abline(h=10, col="red")
+```
+
+To get my main clustering result (i.e. the membership vector) I can "cut" my tree at a given height. To do this I will use the `cutree()`
+
+```{r}
+grps <- cutree(hc, h=10)
+grps
+plot(z, col=grps)
+```
+
+# Principal Component Analysis
+
+Principal component analysis (PCA) is a well established "multivariate statistical technique" used to reduce the dimensionality of a complex data set to a more manageable number (typically 2D or 3D). This method is particularly useful for highlighting strong paterns and relationships in large datasets (i.e. revealing major similarities and diferences) that are otherwise hard to visualize. 
+
+## PCA of UK food data
+
+Data import
+```{r}
+url <- "https://tinyurl.com/UK-foods"
+x <- read.csv(url)
+```
+
+> Q1. How many rows and columns are in your new data frame named x? What R functions could you use to answer this questions?
+
+```{r}
+nrow(x)
+ncol(x)
+# use you can use
+#dim(x)
+```
+
+## Preview the first 6 rows
+```{r}
+head(x)
+```
+
+First approach: We don't want to have row names set as the first column of the x data frame, only the 4 countries, so we can change this using the function below:
+# Note how the minus indexing works and check the dimensions
+```{r}
+rownames(x) <- x[,1]
+x <- x[,-1]
+head(x)
+#dim(x)
+```
+
+# Second approach: Instead of using the above code, you can instead use this to change the row names from being set as the first column of the x data frame to only having the four countries as row names
+```{r}
+#dim(x)
+x <- read.csv(url, row.names=1)
+head(x)
+```
+
+> Q2. Which approach to solving the ‘row-names problem’ mentioned above do you prefer and why? Is one approach more robust than another under certain circumstances?
+
+I prefer to have the second approach because if you were to rerun the first approach block multiple times, it will keep cutting down the row name of the one in the first place and the number of countries will shrink from 3 to 2 and so on
+
+# Generating a bar plot from the data
+```{r}
+barplot(as.matrix(x), beside=T, col=rainbow(nrow(x)))
+```
+
+> Q3: Changing what optional argument in the above barplot() function results in the following plot?
+
+beside=FALSE leads to the plot below because changing beside to false makes the columns of height portrayed as stacked bars, whereas with true, the columns are portrayed as juxtaposed bars
+```{r}
+barplot(as.matrix(x), beside=FALSE, col=rainbow(nrow(x)))
+```
+
+```{r}
+pairs(x, col=rainbow(10), pch=16)
+```
+> Q5: Generating all pairwise plots may help somewhat. Can you make sense of the following code and resulting figure? What does it mean if a given point lies on the diagonal for a given plot?
+
+This code and resulting figure is showing a matrix of scatterplots where you can compare the individual food types with another country. Each point represents a different food type. I think this means that the dots on the diagonal are more strongly correlated with the other country whereas the dots away from the diagonal are less strongly correlated with the other country.
+
+
+
+## PCA to the rescue
+
+The main function to do PCA in base R is called `prcomp()`
+
+Note that I need to take the transpose of this particular data as that is what the `prcomp()` help page was asking for
+
+```{r}
+pca <- prcomp(t(x))
+summary(pca)
+```
+
+Let's see what is inside our result object "pca" that we just calculated:
+
+```{r}
+attributes(pca)
+```
+
+To make our main result figure, called a "PC plot" (or "score plot", "ordination plot", or "PC1 vs PC2 plot")
+
+```{r}
+plot(pca$x[,1], pca$x[,2], 
+  col=c("black", "red", "blue", "darkgreen"), 
+  pch=16, xlab="PC1 (67.4%)", ylab="PC2 (29%)")
+abline(h=0, col="grey", lty="dashed")
+abline(v=0, col="grey", lty="dashed")
+```
+
+
+# Variable Loadings Plot
+
+```{r}
+## Lets focus on PC1 as it accounts for > 90% of variance 
+par(mar=c(10, 3, 0.35, 0))
+barplot( pca$rotation[,1], las=2 )
+```
+
+
