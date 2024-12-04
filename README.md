@@ -4,4 +4,4 @@ My class work from [BGGN213](https://bioboot.github.io/bggn213_F24/) at UC San D
 - Class 4: [Intro to R data structures]()
 - Class 5: [All about ggplot]()
 - Class 6: [R functions]()
-- Class 7: [Machine learning for bioinformatics]()
+- Class 7: [Machine learning for bioinformatics](https://github.com/angelicarock/bggn213_github/blob/main/lab7/Lab7/lab7.qmd)
