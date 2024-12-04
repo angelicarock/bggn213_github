@@ -1,0 +1,28 @@
+---
+title: "hw6"
+format: pdf
+author: "Angelica Rock (PID: A15781397)"
+---
+
+# My attempt at improved code
+```{r}
+Run_PDB <- function(x) {
+  library(bio3d) ## call bio3d after downloading package.
+## If not downloaded, install.packages("bio3d")
+## The input x is a variable which specifies what you are calling from the database
+  
+## Read a PDB file from the bio3d package
+  read <- read.pdb(x) 
+## Specifies to retrieve the data from chain A and Calpha atoms
+  trim <- trim.pdb(read, chain="A", elety="CA") 
+## Returns the Bfactor for each residue
+  readb <- trim$atom$b 
+## Creates a standard lined scatter plot 
+  ## with a secondary structure (sse) returned from the specified data in trim object
+  plotb3(readb, sse=trim, typ="l", ylab="Bfactor") 
+## Returns the results from the body of the function
+    return(x) 
+}
+## To call the function to run it and generate all graphs together as the output
+  sapply(c("4AKE", "1AKE", "1E4Y"), Run_PDB)
+```
